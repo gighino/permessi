@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Permessi Servizio Civile</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Stili di supporto per animazioni fluide, cassetto laterale e numeri allineati */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f6f8fb;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        .progress-fill {
+            transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-view {
+            animation: fadeSlideUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        /* Nasconde scrollbar orizzontale sui filtri mantenendo lo scorrimento */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Header Principale Pulito con Navigazione Integrata -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Brand & Titolo -->
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white flex items-center justify-center shadow-sm shadow-indigo-200 shrink-0 relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <!-- Discreto accento tricolore -->
+                    <span class="absolute -bottom-0.5 -right-0.5 flex h-2 w-3 rounded-full overflow-hidden ring-2 ring-white">
+                        <span class="w-1/3 bg-emerald-500"></span>
+                        <span class="w-1/3 bg-white"></span>
+                        <span class="w-1/3 bg-rose-500"></span>
+                    </span>
+                </div>
+                <div class="truncate">
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-none">Servizio Civile</h1>
+                    <p id="header-subtitle" class="text-xs text-slate-500 truncate mt-1">Registro Permessi e Malattie</p>
+                </div>
+            </div>
+
+            <!-- Navigazione a Schede (Desktop) -->
+            <nav aria-label="Navigazione principale" class="hidden md:flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/60">
+                <button type="button" data-view="overview" class="nav-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-slate-900 shadow-xs">
+                    Panoramica
+                </button>
+                <button type="button" data-view="history" class="nav-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                    Storico
+                </button>
+                <button type="button" data-view="calendar" class="nav-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                    Calendario
+                </button>
+            </nav>
+
+            <!-- Azioni Rapide Header -->
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="btn-copy-report" type="button" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-200/70 rounded-xl transition cursor-pointer" title="Copia un riepilogo testuale pronto per il tuo OLP">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span class="hidden lg:inline">Riepilogo OLP</span>
+                </button>
+
+                <button id="btn-open-settings" type="button" class="p-2 text-slate-600 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-200/70 rounded-xl transition cursor-pointer" title="Impostazioni Massimali e Backup" aria-label="Impostazioni Massimali e Backup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+
+                <button id="btn-open-drawer" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] rounded-xl shadow-xs shadow-indigo-200 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nuova Assenza</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenuto Principale -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-24 md:pb-12">
+
+        <!-- ========================================================= -->
+        <!-- VISTA 1: PANORAMICA (KPI Cards + Riepilogo + Ultime Voci) -->
+        <!-- ========================================================= -->
+        <div id="view-overview" class="space-y-8 animate-view">
+            
+            <!-- Intestazione Sezione -->
+            <section aria-label="Situazione giorni disponibili">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Situazione Giorni</h2>
+                        <p class="text-xs sm:text-sm text-slate-500">Disponibilità aggiornata in tempo reale per categoria</p>
+                    </div>
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <span id="total-summary-badge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-700 shadow-2xs tabular-nums">
+                            Usufruiti: 0 / 70 giorni
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Griglia delle 4 Schede Principali -->
+                <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    <!-- Popolate dinamicamente via JS -->
+                </div>
+            </section>
+
+            <!-- Sezione Inferiore Panoramica: Attività Recenti + Riepilogo Distribuzione -->
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Ultime Assenze (7 colonne) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.03)] p-5 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Attività Recenti</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Le ultime assenze inserite nel registro</p>
+                        </div>
+                        <button type="button" onclick="window.appSwitchView('history')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 transition cursor-pointer">
+                            Vedi tutto →
+                        </button>
+                    </div>
+
+                    <div id="overview-recent-list" class="space-y-2.5">
+                        <!-- Ultime 5 voci popolate via JS -->
+                    </div>
+                </div>
+
+                <!-- Riepilogo & Azioni Veloci (5 colonne) -->
+                <div class="lg:col-span-5 space-y-5">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.03)] p-5 sm:p-6">
+                        <h3 class="text-base font-bold text-slate-900">Ripartizione Utilizzo</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 mb-4">Confronto tra giorni usati e disponibilità totale</p>
+                        
+                        <div id="overview-breakdown" class="space-y-3.5">
+                            <!-- Barre compatte riepilogative via JS -->
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
+                            <button type="button" onclick="window.appCopyReport()" class="flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition cursor-pointer">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Copia Riepilogo OLP
+                            </button>
+                            <button type="button" onclick="window.appSwitchView('calendar')" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Calendario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 2: STORICO COMPLETO (Raggruppato per Mese)          -->
+        <!-- ========================================================= -->
+        <div id="view-history" class="hidden space-y-6 animate-view">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Storico Completo</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Tutte le assenze registrate, ordinate e raggruppate per mese</p>
+                </div>
+
+                <!-- Ricerca testuale -->
+                <div class="relative w-full sm:w-64">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="search-entries" placeholder="Cerca nota, mese o data..." class="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <!-- Filtri per Categoria con Contatori -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="filter-tabs">
+                <button type="button" data-filter="all" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-slate-900 text-white">
+                    Tutti
+                </button>
+                <button type="button" data-filter="ordinari" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                    Ordinari
+                </button>
+                <button type="button" data-filter="malattiaPagata" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                    Malattia Pagata
+                </button>
+                <button type="button" data-filter="malattiaNonPagata" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                    Malattia Non Pagata
+                </button>
+                <button type="button" data-filter="straordinari" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                    Straordinari
+                </button>
+            </div>
+
+            <!-- Lista Raggruppata per Mese -->
+            <div id="entries-list" class="space-y-6">
+                <!-- Popolata dinamicamente via JS -->
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 3: CALENDARIO MENSILE                               -->
+        <!-- ========================================================= -->
+        <div id="view-calendar" class="hidden space-y-6 animate-view">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Calendario Assenze</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Visualizza a colpo d'occhio i giorni di permesso e malattia sul mese</p>
+                </div>
+
+                <!-- Controlli Mese -->
+                <div class="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200/90 shadow-2xs self-start sm:self-auto">
+                    <button type="button" id="btn-cal-prev" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer" aria-label="Mese precedente">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <span id="calendar-month-label" class="min-w-36 text-center text-xs sm:text-sm font-bold text-slate-900 capitalize">
+                        Novembre 2026
+                    </span>
+                    <button type="button" id="btn-cal-next" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer" aria-label="Mese successivo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <button type="button" id="btn-cal-today" class="px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer">
+                        Oggi
+                    </button>
+                </div>
+            </div>
+
+            <!-- Griglia Calendario -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.03)] overflow-hidden">
+                <!-- Intestazione Giorni della Settimana -->
+                <div class="grid grid-cols-7 border-b border-slate-100 bg-slate-50/80 text-center py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <div>Lun</div>
+                    <div>Mar</div>
+                    <div>Mer</div>
+                    <div>Gio</div>
+                    <div>Ven</div>
+                    <div class="text-slate-400">Sab</div>
+                    <div class="text-slate-400">Dom</div>
+                </div>
+                <!-- Celle Giorni -->
+                <div id="calendar-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-100">
+                    <!-- Popolate via JS -->
+                </div>
+            </div>
+
+            <!-- Legenda & Dettaglio Giorno Selezionato -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                    <span class="font-semibold text-slate-800">Legenda:</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Ordinari</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>Malattia Pagata</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>Malattia Non Pagata</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>Straordinari</span>
+                </div>
+                <p class="text-xs text-slate-500">Tocca un giorno sul calendario per aggiungere o modificare un'assenza.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Barra di Navigazione Inferiore per Mobile (Thumb-Friendly) -->
+    <nav aria-label="Navigazione mobile" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around">
+        <button type="button" data-view="overview" class="mobile-nav-tab flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-indigo-600 font-semibold transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span class="text-[11px]">Panoramica</span>
+        </button>
+
+        <button type="button" data-view="history" class="mobile-nav-tab flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-slate-500 font-medium transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <span class="text-[11px]">Storico</span>
+        </button>
+
+        <button type="button" data-view="calendar" class="mobile-nav-tab flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-slate-500 font-medium transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-[11px]">Calendario</span>
+        </button>
+
+        <button type="button" id="btn-mobile-add" class="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-slate-500 hover:text-indigo-600 font-medium transition cursor-pointer">
+            <div class="w-6 h-5 rounded-md bg-indigo-600 text-white flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <span class="text-[11px] text-indigo-600 font-semibold">Aggiungi</span>
+        </button>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- PANNELLO LATERALE A SCOMPARSA (SLIDE-OVER DRAWER FORM)    -->
+    <!-- ========================================================= -->
+    <div id="entry-drawer" class="fixed inset-0 z-50 hidden" aria-labelledby="form-title" role="dialog" aria-modal="true">
+        <!-- Sfondo oscurato cliccabile -->
+        <div id="drawer-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity opacity-0"></div>
+
+        <!-- Contenitore pannello -->
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+            <div id="drawer-panel" class="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col transform translate-x-full transition-transform duration-300 ease-out">
+                
+                <!-- Header Drawer -->
+                <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+                    <div>
+                        <h2 id="form-title" class="text-base sm:text-lg font-bold text-slate-900">Registra Assenza</h2>
+                        <p id="form-subtitle" class="text-xs text-slate-500 mt-0.5">Seleziona la tipologia e i giorni da scalare</p>
+                    </div>
+                    <button type="button" id="btn-close-drawer" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer" aria-label="Chiudi pannello">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Corpo Scrollabile del Modulo -->
+                <form id="leave-form" class="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-5">
+                    <input type="hidden" id="entry-id" value="">
+
+                    <!-- Selezione Categoria -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2.5">Tipologia di assenza</label>
+                        <div class="grid grid-cols-2 gap-2.5" id="category-selector">
+                            <button type="button" data-cat="ordinari" class="cat-btn flex flex-col items-start p-3 rounded-xl border-2 text-left transition cursor-pointer">
+                                <span class="text-xs font-bold">Ordinari</span>
+                                <span class="text-[11px] opacity-80 mt-0.5">Ferie / Permessi</span>
+                            </button>
+                            <button type="button" data-cat="malattiaPagata" class="cat-btn flex flex-col items-start p-3 rounded-xl border-2 text-left transition cursor-pointer">
+                                <span class="text-xs font-bold">Malattia Pagata</span>
+                                <span class="text-[11px] opacity-80 mt-0.5">Retribuita (100%)</span>
+                            </button>
+                            <button type="button" data-cat="malattiaNonPagata" class="cat-btn flex flex-col items-start p-3 rounded-xl border-2 text-left transition cursor-pointer">
+                                <span class="text-xs font-bold">Malattia Non Pagata</span>
+                                <span class="text-[11px] opacity-80 mt-0.5">Con decurtazione</span>
+                            </button>
+                            <button type="button" data-cat="straordinari" class="cat-btn flex flex-col items-start p-3 rounded-xl border-2 text-left transition cursor-pointer">
+                                <span class="text-xs font-bold">Straordinari</span>
+                                <span class="text-[11px] opacity-80 mt-0.5">Esami, sangue, ecc.</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="input-category" value="ordinari">
+                    </div>
+
+                    <!-- Date: Inizio e Fine -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="input-start-date" class="block text-xs font-semibold text-slate-700 mb-1.5">Data inizio *</label>
+                            <input type="date" id="input-start-date" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        </div>
+                        <div>
+                            <label for="input-end-date" class="block text-xs font-semibold text-slate-700 mb-1.5">Data fine <span class="font-normal text-slate-400">(opz.)</span></label>
+                            <input type="date" id="input-end-date" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <!-- Quantità Giorni da scalare -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="input-days" class="text-xs font-semibold text-slate-700">Giorni da scalare *</label>
+                            <span id="days-helper" class="text-[11px] text-slate-500">Anche mezze giornate (0.5)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btn-dec-days" class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-lg flex items-center justify-center transition cursor-pointer" aria-label="Riduci di 0.5 giorni">−</button>
+                            <input type="number" id="input-days" step="0.5" min="0.5" max="60" value="1" required class="flex-1 text-center font-bold text-base py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white tabular-nums">
+                            <button type="button" id="btn-inc-days" class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-lg flex items-center justify-center transition cursor-pointer" aria-label="Aumenta di 0.5 giorni">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Avviso dinamico superamento soglia -->
+                    <div id="over-limit-warning" class="hidden p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed">
+                        <!-- Messaggio dinamico inserito via JS -->
+                    </div>
+
+                    <!-- Note / Motivo + Suggerimenti rapidi -->
+                    <div>
+                        <label for="input-note" class="block text-xs font-semibold text-slate-700 mb-1.5">Motivo / Note</label>
+                        <input type="text" id="input-note" placeholder="Es. Visita medica, Esame universitario, Ferie..." class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        
+                        <!-- Suggerimenti rapidi contestuali -->
+                        <div id="quick-tags" class="flex flex-wrap gap-1.5 mt-2.5">
+                            <!-- Generati dinamicamente in base alla categoria -->
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Footer Fisso Drawer -->
+                <div class="px-5 sm:px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex items-center gap-2.5">
+                    <button type="button" id="btn-cancel-edit" class="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" form="leave-form" id="btn-submit-form" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs shadow-indigo-200 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span id="btn-submit-text">Salva nel Registro</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODALE IMPOSTAZIONI MASSIMALI & BACKUP                    -->
+    <!-- ========================================================= -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-view max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Impostazioni e Backup</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Personalizza il profilo, i massimali e salva una copia dei dati</p>
+                </div>
+                <button type="button" id="btn-close-settings" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer" aria-label="Chiudi impostazioni">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="settings-form" class="mt-5 space-y-5">
+                <!-- Nome Volontario / Progetto -->
+                <div>
+                    <label for="set-volunteer-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Nome Volontario o Progetto <span class="font-normal text-slate-400">(opzionale)</span></label>
+                    <input type="text" id="set-volunteer-name" placeholder="Es. Mario Rossi — Progetto Cultura 2026" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                </div>
+
+                <!-- Massimali Giorni -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Massimali Giorni</label>
+                        <button type="button" id="btn-reset-defaults" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer">
+                            Ripristina 20/15/15/20
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="set-ordinari" class="block text-xs font-medium text-slate-600 mb-1">Permessi Ordinari</label>
+                            <input type="number" id="set-ordinari" step="0.5" min="0" value="20" class="w-full px-3 py-2 text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 tabular-nums">
+                        </div>
+                        <div>
+                            <label for="set-malattiaPagata" class="block text-xs font-medium text-slate-600 mb-1">Malattia Pagata</label>
+                            <input type="number" id="set-malattiaPagata" step="0.5" min="0" value="15" class="w-full px-3 py-2 text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 tabular-nums">
+                        </div>
+                        <div>
+                            <label for="set-malattiaNonPagata" class="block text-xs font-medium text-slate-600 mb-1">Malattia Non Pagata</label>
+                            <input type="number" id="set-malattiaNonPagata" step="0.5" min="0" value="15" class="w-full px-3 py-2 text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 tabular-nums">
+                        </div>
+                        <div>
+                            <label for="set-straordinari" class="block text-xs font-medium text-slate-600 mb-1">Straordinari</label>
+                            <input type="number" id="set-straordinari" step="0.5" min="0" value="20" class="w-full px-3 py-2 text-sm font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 tabular-nums">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salva Impostazioni -->
+                <div class="flex justify-end">
+                    <button type="submit" class="px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition cursor-pointer">
+                        Salva Impostazioni
+                    </button>
+                </div>
+            </form>
+
+            <!-- Sezione Backup & Ripristino -->
+            <div class="mt-6 pt-5 border-t border-slate-100 space-y-3">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Backup e Gestione Dati</h4>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="btn-export-json" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Esporta Backup (.json)
+                    </button>
+
+                    <label class="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Importa Backup</span>
+                        <input type="file" id="input-import-json" accept=".json,application/json" class="hidden">
+                    </label>
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" id="btn-clear-all-data" class="w-full py-2 px-3 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl transition cursor-pointer">
+                        Svuota tutte le assenze registrate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODALE DI CONFERMA PERSONALIZZATA (SOSTITUISCE CONFIRM()) -->
+    <!-- ========================================================= -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 animate-view">
+            <h3 id="confirm-title" class="text-base font-bold text-slate-900">Conferma azione</h3>
+            <p id="confirm-message" class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">Sei sicuro di voler procedere?</p>
+            <div class="mt-6 flex items-center justify-end gap-2">
+                <button type="button" id="btn-confirm-cancel" class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-confirm-ok" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition cursor-pointer">
+                    Elimina
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Notifiche Toast (Posizionato sopra la barra mobile) -->
+    <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-2 sm:px-0"></div>
+
+    <script>
+        /**
+         * Applicazione di gestione permessi e malattie per il Servizio Civile.
+         * Layout ordinato a schede (Panoramica, Storico raggruppato, Calendario)
+         * e pannello laterale (Drawer) per l'inserimento rapido.
+         */
+        (function () {
+            'use strict';
+
+            const STORAGE_KEY = 'servizio_civile_tracker_v1';
+
+            // Configurazione statica delle 4 categorie principali con icone dedicate
+            const CATEGORIES = {
+                ordinari: {
+                    key: 'ordinari',
+                    label: 'Permessi Ordinari',
+                    shortLabel: 'Ordinari',
+                    description: 'Ferie e permessi personali',
+                    defaultMax: 20,
+                    iconBg: 'bg-emerald-50 text-emerald-600',
+                    colorBadge: 'bg-emerald-100/80 text-emerald-800',
+                    colorBar: 'bg-emerald-500',
+                    colorDot: 'bg-emerald-500',
+                    activeBtn: 'border-emerald-500 bg-emerald-50/70 text-emerald-950 ring-2 ring-emerald-500/20',
+                    quickTags: ['Ferie', 'Motivi personali', 'Ponte festivo', 'Mezza giornata'],
+                    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />'
+                },
+                malattiaPagata: {
+                    key: 'malattiaPagata',
+                    label: 'Malattia Pagata',
+                    shortLabel: 'Malattia Pagata',
+                    description: 'Assenza retribuita al 100%',
+                    defaultMax: 15,
+                    iconBg: 'bg-amber-50 text-amber-600',
+                    colorBadge: 'bg-amber-100/80 text-amber-800',
+                    colorBar: 'bg-amber-500',
+                    colorDot: 'bg-amber-500',
+                    activeBtn: 'border-amber-500 bg-amber-50/70 text-amber-950 ring-2 ring-amber-500/20',
+                    quickTags: ['Certificato medico', 'Influenza', 'Visita specialistica', 'Indisposizione'],
+                    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />'
+                },
+                malattiaNonPagata: {
+                    key: 'malattiaNonPagata',
+                    label: 'Malattia Non Pagata',
+                    shortLabel: 'Malattia Non Pagata',
+                    description: 'Oltre i 15 gg pagati',
+                    defaultMax: 15,
+                    iconBg: 'bg-rose-50 text-rose-600',
+                    colorBadge: 'bg-rose-100/80 text-rose-800',
+                    colorBar: 'bg-rose-500',
+                    colorDot: 'bg-rose-500',
+                    activeBtn: 'border-rose-500 bg-rose-50/70 text-rose-950 ring-2 ring-rose-500/20',
+                    quickTags: ['Prosecuzione malattia', 'Certificato medico'],
+                    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                },
+                straordinari: {
+                    key: 'straordinari',
+                    label: 'Permessi Straordinari',
+                    shortLabel: 'Straordinari',
+                    description: 'Esami, sangue, lutto, ecc.',
+                    defaultMax: 20,
+                    iconBg: 'bg-indigo-50 text-indigo-600',
+                    colorBadge: 'bg-indigo-100/80 text-indigo-800',
+                    colorBar: 'bg-indigo-600',
+                    colorDot: 'bg-indigo-600',
+                    activeBtn: 'border-indigo-600 bg-indigo-50/70 text-indigo-950 ring-2 ring-indigo-600/20',
+                    quickTags: ['Esame universitario', 'Donazione sangue', 'Permesso elettorale', 'Lutto / Gravissimi motivi'],
+                    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />'
+                }
+            };
+
+            const now = new Date();
+
+            // Stato applicativo
+            let state = {
+                volunteerName: '',
+                quotas: {
+                    ordinari: 20,
+                    malattiaPagata: 15,
+                    malattiaNonPagata: 15,
+                    straordinari: 20
+                },
+                entries: [],
+                currentView: 'overview',
+                currentFilter: 'all',
+                searchQuery: '',
+                calendarYear: now.getFullYear(),
+                calendarMonth: now.getMonth()
+            };
+
+            let pendingConfirmCallback = null;
+
+            // Helper sicuro per associare eventi agli elementi DOM
+            function bindById(id, eventName, handler) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener(eventName, handler);
+                }
+            }
+
+            // --- INIZIALIZZAZIONE ---
+            function init() {
+                try {
+                    loadState();
+                    setDefaultDate();
+                    selectCategory('ordinari');
+                    bindEvents();
+                    switchView('overview');
+                    renderAll();
+                } catch (err) {
+                    console.error('Errore di inizializzazione:', err);
+                }
+            }
+
+            // Caricamento stato da localStorage con gestione errori
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === 'object') {
+                            state.volunteerName = parsed.volunteerName || '';
+                            state.quotas = {
+                                ordinari: Number(parsed.quotas?.ordinari ?? 20),
+                                malattiaPagata: Number(parsed.quotas?.malattiaPagata ?? 15),
+                                malattiaNonPagata: Number(parsed.quotas?.malattiaNonPagata ?? 15),
+                                straordinari: Number(parsed.quotas?.straordinari ?? 20)
+                            };
+                            state.entries = Array.isArray(parsed.entries) ? parsed.entries : [];
+                        }
+                    }
+                } catch (err) {
+                    console.error('Errore durante il caricamento dei dati salvati:', err);
+                    showToast('Impossibile leggere i dati salvati in precedenza.', 'error');
+                }
+            }
+
+            // Salvataggio stato in localStorage
+            function saveState() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        volunteerName: state.volunteerName,
+                        quotas: state.quotas,
+                        entries: state.entries
+                    }));
+                } catch (err) {
+                    console.error('Errore durante il salvataggio:', err);
+                    showToast('Errore nel salvataggio locale dei dati.', 'error');
+                }
+            }
+
+            // Imposta data odierna nel campo data inizio
+            function setDefaultDate(customIsoDate) {
+                const targetDate = customIsoDate || new Date().toISOString().split('T')[0];
+                const input = document.getElementById('input-start-date');
+                if (input) input.value = targetDate;
+            }
+
+            // --- NAVIGAZIONE TRA VISTE ---
+            function switchView(viewName) {
+                state.currentView = viewName;
+
+                const views = ['overview', 'history', 'calendar'];
+                views.forEach(v => {
+                    const el = document.getElementById(`view-${v}`);
+                    if (!el) return;
+                    if (v === viewName) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+
+                // Aggiorna tab desktop
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    const isActive = tab.getAttribute('data-view') === viewName;
+                    tab.className = isActive
+                        ? 'nav-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-slate-900 shadow-xs'
+                        : 'nav-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900';
+                });
+
+                // Aggiorna barra inferiore mobile
+                document.querySelectorAll('.mobile-nav-tab').forEach(tab => {
+                    const isActive = tab.getAttribute('data-view') === viewName;
+                    tab.className = isActive
+                        ? 'mobile-nav-tab flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-indigo-600 font-semibold transition cursor-pointer'
+                        : 'mobile-nav-tab flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-slate-500 font-medium transition cursor-pointer';
+                });
+
+                if (viewName === 'calendar') {
+                    renderCalendar();
+                } else if (viewName === 'history') {
+                    renderEntries();
+                } else {
+                    renderOverview();
+                }
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // --- GESTIONE DRAWER LATERALE (INSERIMENTO / MODIFICA) ---
+            function openDrawer(options = {}) {
+                const drawer = document.getElementById('entry-drawer');
+                const backdrop = document.getElementById('drawer-backdrop');
+                const panel = document.getElementById('drawer-panel');
+                if (!drawer || !backdrop || !panel) return;
+
+                if (options.reset !== false) {
+                    resetForm(options.date || null);
+                }
+                if (options.category) {
+                    selectCategory(options.category);
+                }
+
+                drawer.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('translate-x-full');
+                });
+            }
+
+            function closeDrawer() {
+                const drawer = document.getElementById('entry-drawer');
+                const backdrop = document.getElementById('drawer-backdrop');
+                const panel = document.getElementById('drawer-panel');
+                if (!drawer || !backdrop || !panel) return;
+
+                backdrop.classList.add('opacity-0');
+                panel.classList.add('translate-x-full');
+
+                setTimeout(() => {
+                    drawer.classList.add('hidden');
+                }, 280);
+            }
+
+            // --- CALCOLI ---
+            function getUsedDaysByCategory() {
+                const used = {
+                    ordinari: 0,
+                    malattiaPagata: 0,
+                    malattiaNonPagata: 0,
+                    straordinari: 0
+                };
+                for (const entry of state.entries) {
+                    if (Object.prototype.hasOwnProperty.call(used, entry.category)) {
+                        used[entry.category] += Number(entry.days) || 0;
+                    }
+                }
+                return used;
+            }
+
+            function formatNumber(num) {
+                return Number.isInteger(num) ? num.toString() : num.toFixed(1).replace('.', ',');
+            }
+
+            function formatDateIT(isoDate) {
+                if (!isoDate) return '';
+                const [y, m, d] = isoDate.split('-').map(Number);
+                const dateObj = new Date(y, m - 1, d);
+                return new Intl.DateTimeFormat('it-IT', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                }).format(dateObj);
+            }
+
+            function formatMonthYearIT(isoDate) {
+                const [y, m] = isoDate.split('-').map(Number);
+                const dateObj = new Date(y, m - 1, 1);
+                return new Intl.DateTimeFormat('it-IT', {
+                    month: 'long',
+                    year: 'numeric'
+                }).format(dateObj);
+            }
+
+            function calculateWeekdays(startStr, endStr) {
+                if (!startStr || !endStr) return null;
+                const [sy, sm, sd] = startStr.split('-').map(Number);
+                const [ey, em, ed] = endStr.split('-').map(Number);
+                const start = new Date(sy, sm - 1, sd);
+                const end = new Date(ey, em - 1, ed);
+                if (end < start) return null;
+
+                let count = 0;
+                const cur = new Date(start);
+                while (cur <= end) {
+                    const dayOfWeek = cur.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        count++;
+                    }
+                    cur.setDate(cur.getDate() + 1);
+                }
+                return count > 0 ? count : 1;
+            }
+
+            // --- RENDERING GENERALE ---
+            function renderAll() {
+                renderHeader();
+                renderOverview();
+                renderEntries();
+                renderCalendar();
+                checkOverLimitWarning();
+            }
+
+            function renderHeader() {
+                const sub = document.getElementById('header-subtitle');
+                if (!sub) return;
+                if (state.volunteerName && state.volunteerName.trim() !== '') {
+                    sub.textContent = state.volunteerName.trim();
+                } else {
+                    sub.textContent = 'Registro Permessi e Malattie';
+                }
+            }
+
+            function renderOverview() {
+                renderCards();
+                renderOverviewRecent();
+                renderOverviewBreakdown();
+            }
+
+            function renderCards() {
+                const grid = document.getElementById('cards-grid');
+                if (!grid) return;
+                const usedMap = getUsedDaysByCategory();
+                let totalUsedAll = 0;
+                let totalQuotaAll = 0;
+
+                grid.innerHTML = Object.values(CATEGORIES).map(cat => {
+                    const max = state.quotas[cat.key];
+                    const used = usedMap[cat.key];
+                    totalUsedAll += used;
+                    totalQuotaAll += max;
+                    const remaining = max - used;
+                    const pct = max > 0 ? Math.min(100, Math.max(0, (used / max) * 100)) : (used > 0 ? 100 : 0);
+                    const isOver = remaining < 0;
+
+                    return `
+                        <article class="bg-white rounded-2xl border ${isOver ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-200/80'} p-5 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-md hover:border-slate-300/90 transition flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="w-9 h-9 rounded-xl ${cat.iconBg} flex items-center justify-center shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            ${cat.iconSvg}
+                                        </svg>
+                                    </div>
+                                    <button type="button" onclick="window.appQuickAdd('${cat.key}')" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-indigo-600 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 transition cursor-pointer" title="Registra giorno in ${cat.shortLabel}">
+                                        <span>+ Registra</span>
+                                    </button>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">${cat.shortLabel}</h3>
+                                    <div class="mt-1.5 flex items-baseline gap-2">
+                                        <span class="text-3xl font-extrabold tracking-tight tabular-nums ${isOver ? 'text-rose-600' : 'text-slate-900'}">
+                                            ${formatNumber(remaining)}
+                                        </span>
+                                        <span class="text-xs font-medium text-slate-500">
+                                            ${Math.abs(remaining) === 1 ? 'giorno rimasto' : 'giorni rimasti'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-3.5 border-t border-slate-100">
+                                <div class="flex items-center justify-between text-xs mb-1.5 tabular-nums">
+                                    <span class="text-slate-500">Usati <strong class="text-slate-800 font-semibold">${formatNumber(used)}</strong></span>
+                                    <span class="text-slate-400">su ${formatNumber(max)} gg</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full progress-fill ${isOver ? 'bg-rose-600' : cat.colorBar}" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+
+                const badge = document.getElementById('total-summary-badge');
+                if (badge) {
+                    badge.textContent = `Usufruiti: ${formatNumber(totalUsedAll)} / ${formatNumber(totalQuotaAll)} giorni`;
+                }
+            }
+
+            function renderOverviewRecent() {
+                const container = document.getElementById('overview-recent-list');
+                if (!container) return;
+                const recent = [...state.entries]
+                    .sort((a, b) => b.startDate.localeCompare(a.startDate) || b.createdAt - a.createdAt)
+                    .slice(0, 5);
+
+                if (recent.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-9 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                            <p class="text-sm font-semibold text-slate-700">Nessuna assenza registrata</p>
+                            <p class="text-xs text-slate-500 mt-1 mb-4">Inizia aggiungendo il tuo primo giorno di permesso o malattia.</p>
+                            <button type="button" onclick="window.appQuickAdd('ordinari')" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition cursor-pointer">
+                                + Registra ora
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = recent.map(entry => createEntryRowHtml(entry)).join('');
+            }
+
+            function renderOverviewBreakdown() {
+                const container = document.getElementById('overview-breakdown');
+                if (!container) return;
+                const usedMap = getUsedDaysByCategory();
+
+                container.innerHTML = Object.values(CATEGORIES).map(cat => {
+                    const max = state.quotas[cat.key];
+                    const used = usedMap[cat.key];
+                    const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+
+                    return `
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="font-semibold text-slate-700 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full ${cat.colorDot}"></span>
+                                    ${cat.shortLabel}
+                                </span>
+                                <span class="text-slate-500 tabular-nums">${formatNumber(used)} / ${formatNumber(max)} gg (${pct}%)</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full progress-fill ${cat.colorBar}" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Crea la riga HTML pulita e compatta per una singola assenza
+            function createEntryRowHtml(entry) {
+                const cat = CATEGORIES[entry.category] || CATEGORIES.ordinari;
+                const dateDisplay = entry.endDate && entry.endDate !== entry.startDate
+                    ? `${formatDateIT(entry.startDate)} → ${formatDateIT(entry.endDate)}`
+                    : formatDateIT(entry.startDate);
+                const daysText = `${formatNumber(Number(entry.days))} ${Number(entry.days) === 1 ? 'giorno' : 'giorni'}`;
+
+                return `
+                    <div class="group flex items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200/80 hover:border-slate-300 bg-white hover:bg-slate-50/60 transition">
+                        <div class="flex items-start gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-lg ${cat.iconBg} flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    ${cat.iconSvg}
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="text-xs font-bold text-slate-900">${cat.shortLabel}</span>
+                                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md ${cat.colorBadge} tabular-nums">
+                                        −${daysText}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    <span>${dateDisplay}</span>
+                                    ${entry.note ? ` • <span class="text-slate-700 font-medium">${escapeHtml(entry.note)}</span>` : ''}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button type="button" onclick="window.appEditEntry('${entry.id}')" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer" title="Modifica">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button type="button" onclick="window.appDeleteEntry('${entry.id}')" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" title="Elimina">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- RENDERING STORICO RAGGRUPPATO PER MESE ---
+            function renderEntries() {
+                const container = document.getElementById('entries-list');
+                if (!container) return;
+                const query = state.searchQuery.toLowerCase().trim();
+
+                // Aggiorna i contatori sui pulsanti filtro
+                updateFilterTabCounts();
+
+                const filtered = [...state.entries]
+                    .sort((a, b) => b.startDate.localeCompare(a.startDate) || b.createdAt - a.createdAt)
+                    .filter(entry => {
+                        if (state.currentFilter !== 'all' && entry.category !== state.currentFilter) {
+                            return false;
+                        }
+                        if (query) {
+                            const catLabel = CATEGORIES[entry.category]?.label.toLowerCase() || '';
+                            const note = (entry.note || '').toLowerCase();
+                            const dateFormatted = formatDateIT(entry.startDate).toLowerCase();
+                            const monthFormatted = formatMonthYearIT(entry.startDate).toLowerCase();
+                            return catLabel.includes(query) || note.includes(query) || dateFormatted.includes(query) || monthFormatted.includes(query);
+                        }
+                        return true;
+                    });
+
+                if (filtered.length === 0) {
+                    const isFiltered = state.currentFilter !== 'all' || query !== '';
+                    container.innerHTML = `
+                        <div class="bg-white text-center py-14 px-4 rounded-2xl border border-dashed border-slate-200">
+                            <p class="text-sm font-semibold text-slate-700">
+                                ${isFiltered ? 'Nessuna assenza trovata con questi filtri' : 'Lo storico è ancora vuoto'}
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                                ${isFiltered ? 'Prova a cambiare filtro o a svuotare la casella di ricerca.' : 'Clicca su "Nuova Assenza" in alto per iniziare a registrare i tuoi giorni.'}
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Raggruppa per YYYY-MM
+                const groups = new Map();
+                for (const entry of filtered) {
+                    const monthKey = entry.startDate.slice(0, 7);
+                    if (!groups.has(monthKey)) {
+                        groups.set(monthKey, []);
+                    }
+                    groups.get(monthKey).push(entry);
+                }
+
+                let html = '';
+                groups.forEach((items, monthKey) => {
+                    const monthTitle = formatMonthYearIT(`${monthKey}-01`);
+                    const monthDaysSum = items.reduce((acc, item) => acc + (Number(item.days) || 0), 0);
+
+                    html += `
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.03)] p-4 sm:p-5">
+                            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                <h3 class="text-sm font-bold text-slate-800 capitalize">${monthTitle}</h3>
+                                <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg tabular-nums">
+                                    Totale mese: ${formatNumber(monthDaysSum)} ${monthDaysSum === 1 ? 'giorno' : 'giorni'}
+                                </span>
+                            </div>
+                            <div class="space-y-2.5">
+                                ${items.map(entry => createEntryRowHtml(entry)).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            function updateFilterTabCounts() {
+                const counts = { all: state.entries.length, ordinari: 0, malattiaPagata: 0, malattiaNonPagata: 0, straordinari: 0 };
+                state.entries.forEach(e => {
+                    if (Object.prototype.hasOwnProperty.call(counts, e.category)) {
+                        counts[e.category]++;
+                    }
+                });
+
+                const labels = {
+                    all: 'Tutti',
+                    ordinari: 'Ordinari',
+                    malattiaPagata: 'Malattia Pagata',
+                    malattiaNonPagata: 'Malattia Non Pagata',
+                    straordinari: 'Straordinari'
+                };
+
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    const key = tab.getAttribute('data-filter');
+                    tab.textContent = `${labels[key]} (${counts[key] ?? 0})`;
+                });
+            }
+
+            // --- RENDERING CALENDARIO MENSILE ---
+            function renderCalendar() {
+                const grid = document.getElementById('calendar-grid');
+                const label = document.getElementById('calendar-month-label');
+                if (!grid || !label) return;
+
+                const year = state.calendarYear;
+                const month = state.calendarMonth;
+
+                const monthDate = new Date(year, month, 1);
+                label.textContent = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' }).format(monthDate);
+
+                // Indice primo giorno (Lunedì = 0 ... Domenica = 6)
+                const firstWeekday = (monthDate.getDay() + 6) % 7;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const todayIso = new Date().toISOString().split('T')[0];
+
+                let cellsHtml = '';
+
+                // Celle vuote iniziali
+                for (let i = 0; i < firstWeekday; i++) {
+                    cellsHtml += '<div class="min-h-20 sm:min-h-24 bg-slate-50/40 p-1.5"></div>';
+                }
+
+                // Giorni del mese
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const mm = String(month + 1).padStart(2, '0');
+                    const dd = String(day).padStart(2, '0');
+                    const isoStr = `${year}-${mm}-${dd}`;
+                    const dow = new Date(year, month, day).getDay();
+                    const isWeekend = dow === 0 || dow === 6;
+                    const isToday = isoStr === todayIso;
+
+                    // Trova assenze attive in questa data
+                    const dayEntries = state.entries.filter(e => {
+                        const start = e.startDate;
+                        const end = e.endDate || e.startDate;
+                        if (isoStr < start || isoStr > end) return false;
+                        // Se è un intervallo multi-giorno, esclude visivamente sabato e domenica
+                        if (start !== end && isWeekend) return false;
+                        return true;
+                    });
+
+                    const badgesHtml = dayEntries.map(e => {
+                        const cat = CATEGORIES[e.category] || CATEGORIES.ordinari;
+                        return `
+                            <div class="truncate text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${cat.colorBadge}" title="${cat.shortLabel}${e.note ? ': ' + escapeHtml(e.note) : ''}">
+                                ${cat.shortLabel}
+                            </div>
+                        `;
+                    }).join('');
+
+                    cellsHtml += `
+                        <button type="button" onclick="window.appClickCalendarDay('${isoStr}')" class="min-h-20 sm:min-h-24 p-1.5 sm:p-2 text-left flex flex-col justify-between transition cursor-pointer ${isWeekend ? 'bg-slate-50/70' : 'bg-white hover:bg-indigo-50/30'} focus:outline-none">
+                            <span class="w-6 h-6 rounded-full text-xs font-semibold flex items-center justify-center tabular-nums ${isToday ? 'bg-indigo-600 text-white' : (isWeekend ? 'text-slate-400' : 'text-slate-700')}">
+                                ${day}
+                            </span>
+                            <div class="space-y-1 w-full mt-1">
+                                ${badgesHtml}
+                            </div>
+                        </button>
+                    `;
+                }
+
+                grid.innerHTML = cellsHtml;
+            }
+
+            // --- GESTIONE FORM E CATEGORIE ---
+            function selectCategory(catKey) {
+                const catInput = document.getElementById('input-category');
+                if (catInput) catInput.value = catKey;
+
+                const buttons = document.querySelectorAll('.cat-btn');
+                buttons.forEach(btn => {
+                    const key = btn.getAttribute('data-cat');
+                    const cat = CATEGORIES[key];
+                    btn.className = 'cat-btn flex flex-col items-start p-3 rounded-xl border-2 text-left transition cursor-pointer ';
+                    if (key === catKey) {
+                        btn.className += cat.activeBtn;
+                    } else {
+                        btn.className += 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+                    }
+                });
+
+                const tagsContainer = document.getElementById('quick-tags');
+                if (tagsContainer) {
+                    const tags = CATEGORIES[catKey]?.quickTags || [];
+                    tagsContainer.innerHTML = tags.map(tag => `
+                        <button type="button" onclick="window.appFillTag('${tag.replace(/'/g, "\\'")}')" class="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
+                            + ${tag}
+                        </button>
+                    `).join('');
+                }
+
+                checkOverLimitWarning();
+            }
+
+            function checkOverLimitWarning() {
+                const catInput = document.getElementById('input-category');
+                const daysInput = document.getElementById('input-days');
+                const idInput = document.getElementById('entry-id');
+                const warningBox = document.getElementById('over-limit-warning');
+                if (!catInput || !daysInput || !idInput || !warningBox) return;
+
+                const catKey = catInput.value;
+                const inputDays = parseFloat(daysInput.value) || 0;
+                const editingId = idInput.value;
+
+                const usedMap = getUsedDaysByCategory();
+                let currentUsed = usedMap[catKey] || 0;
+
+                if (editingId) {
+                    const existing = state.entries.find(e => e.id === editingId);
+                    if (existing && existing.category === catKey) {
+                        currentUsed -= Number(existing.days) || 0;
+                    }
+                }
+
+                const max = state.quotas[catKey];
+                const remaining = max - currentUsed;
+
+                if (inputDays > remaining) {
+                    let extraTip = '';
+                    if (catKey === 'malattiaPagata' && remaining > 0) {
+                        const excess = inputDays - remaining;
+                        extraTip = `<br><strong>Consiglio:</strong> Puoi registrare <strong>${formatNumber(remaining)} gg</strong> in Malattia Pagata e i restanti <strong>${formatNumber(excess)} gg</strong> in Malattia Non Pagata.`;
+                    }
+                    warningBox.innerHTML = `
+                        <strong>Attenzione:</strong> Hai a disposizione ancora <strong>${formatNumber(Math.max(0, remaining))} giorni</strong> per <em>${CATEGORIES[catKey].label}</em>, ma stai inserendo <strong>${formatNumber(inputDays)} giorni</strong>.${extraTip}
+                    `;
+                    warningBox.classList.remove('hidden');
+                } else {
+                    warningBox.classList.add('hidden');
+                }
+            }
+
+            function resetForm(customIsoDate = null) {
+                const idEl = document.getElementById('entry-id');
+                const titleEl = document.getElementById('form-title');
+                const subEl = document.getElementById('form-subtitle');
+                const btnTextEl = document.getElementById('btn-submit-text');
+                const endDateEl = document.getElementById('input-end-date');
+                const daysEl = document.getElementById('input-days');
+                const noteEl = document.getElementById('input-note');
+
+                if (idEl) idEl.value = '';
+                if (titleEl) titleEl.textContent = 'Registra Assenza';
+                if (subEl) subEl.textContent = 'Seleziona la tipologia e i giorni da scalare';
+                if (btnTextEl) btnTextEl.textContent = 'Salva nel Registro';
+                setDefaultDate(customIsoDate);
+                if (endDateEl) endDateEl.value = '';
+                if (daysEl) daysEl.value = '1';
+                if (noteEl) noteEl.value = '';
+                selectCategory('ordinari');
+            }
+
+            // --- EVENT LISTENERS ---
+            function bindEvents() {
+                // Navigazione Desktop e Mobile
+                document.querySelectorAll('.nav-tab, .mobile-nav-tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        switchView(btn.getAttribute('data-view'));
+                    });
+                });
+
+                // Apertura / Chiusura Drawer
+                bindById('btn-open-drawer', 'click', () => openDrawer());
+                bindById('btn-mobile-add', 'click', () => openDrawer());
+                bindById('btn-close-drawer', 'click', closeDrawer);
+                bindById('drawer-backdrop', 'click', closeDrawer);
+                bindById('btn-cancel-edit', 'click', closeDrawer);
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        const drawer = document.getElementById('entry-drawer');
+                        if (drawer && !drawer.classList.contains('hidden')) {
+                            closeDrawer();
+                        }
+                        const settingsModal = document.getElementById('settings-modal');
+                        if (settingsModal && !settingsModal.classList.contains('hidden')) {
+                            settingsModal.classList.add('hidden');
+                            settingsModal.classList.remove('flex');
+                        }
+                        const confirmModal = document.getElementById('confirm-modal');
+                        if (confirmModal && !confirmModal.classList.contains('hidden')) {
+                            closeConfirmModal();
+                        }
+                    }
+                });
+
+                // Controlli Calendario
+                bindById('btn-cal-prev', 'click', () => {
+                    state.calendarMonth--;
+                    if (state.calendarMonth < 0) {
+                        state.calendarMonth = 11;
+                        state.calendarYear--;
+                    }
+                    renderCalendar();
+                });
+
+                bindById('btn-cal-next', 'click', () => {
+                    state.calendarMonth++;
+                    if (state.calendarMonth > 11) {
+                        state.calendarMonth = 0;
+                        state.calendarYear++;
+                    }
+                    renderCalendar();
+                });
+
+                bindById('btn-cal-today', 'click', () => {
+                    const today = new Date();
+                    state.calendarYear = today.getFullYear();
+                    state.calendarMonth = today.getMonth();
+                    renderCalendar();
+                });
+
+                // Selezione categoria nel Drawer
+                document.querySelectorAll('.cat-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        selectCategory(btn.getAttribute('data-cat'));
+                    });
+                });
+
+                // Stepper giorni (-0.5 / +0.5)
+                bindById('btn-dec-days', 'click', () => {
+                    const input = document.getElementById('input-days');
+                    if (!input) return;
+                    const val = parseFloat(input.value) || 1;
+                    if (val > 0.5) {
+                        input.value = (val - 0.5).toString();
+                        checkOverLimitWarning();
+                    }
+                });
+
+                bindById('btn-inc-days', 'click', () => {
+                    const input = document.getElementById('input-days');
+                    if (!input) return;
+                    const val = parseFloat(input.value) || 0;
+                    input.value = (val + 0.5).toString();
+                    checkOverLimitWarning();
+                });
+
+                bindById('input-days', 'input', checkOverLimitWarning);
+
+                // Calcolo automatico giorni lavorativi su intervallo date
+                const startDateInput = document.getElementById('input-start-date');
+                const endDateInput = document.getElementById('input-end-date');
+
+                function handleDateRangeChange() {
+                    if (!startDateInput || !endDateInput) return;
+                    const startVal = startDateInput.value;
+                    const endVal = endDateInput.value;
+                    if (startVal && endVal) {
+                        if (endVal < startVal) {
+                            endDateInput.value = startVal;
+                            const daysEl = document.getElementById('input-days');
+                            if (daysEl) daysEl.value = '1';
+                        } else {
+                            const weekdays = calculateWeekdays(startVal, endVal);
+                            if (weekdays !== null) {
+                                const daysEl = document.getElementById('input-days');
+                                if (daysEl) daysEl.value = weekdays.toString();
+                            }
+                        }
+                        checkOverLimitWarning();
+                    }
+                }
+
+                if (startDateInput) startDateInput.addEventListener('change', handleDateRangeChange);
+                if (endDateInput) endDateInput.addEventListener('change', handleDateRangeChange);
+
+                // Invio Form (Crea o Aggiorna)
+                bindById('leave-form', 'submit', (e) => {
+                    e.preventDefault();
+                    const id = document.getElementById('entry-id')?.value || '';
+                    const category = document.getElementById('input-category')?.value || 'ordinari';
+                    const startDate = document.getElementById('input-start-date')?.value || '';
+                    const endDate = document.getElementById('input-end-date')?.value || '';
+                    const days = parseFloat(document.getElementById('input-days')?.value || '0');
+                    const note = (document.getElementById('input-note')?.value || '').trim();
+
+                    if (!startDate || isNaN(days) || days <= 0) {
+                        showToast('Inserisci una data valida e almeno 0,5 giorni.', 'error');
+                        return;
+                    }
+
+                    if (endDate && endDate < startDate) {
+                        showToast('La data di fine non può precedere quella di inizio.', 'error');
+                        return;
+                    }
+
+                    if (id) {
+                        const idx = state.entries.findIndex(item => item.id === id);
+                        if (idx !== -1) {
+                            state.entries[idx] = {
+                                ...state.entries[idx],
+                                category,
+                                startDate,
+                                endDate: endDate || startDate,
+                                days,
+                                note
+                            };
+                            showToast('Registrazione aggiornata!', 'success');
+                        }
+                    } else {
+                        state.entries.push({
+                            id: 'entry_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                            category,
+                            startDate,
+                            endDate: endDate || startDate,
+                            days,
+                            note,
+                            createdAt: Date.now()
+                        });
+                        showToast(`Scalati ${formatNumber(days)} gg da ${CATEGORIES[category].shortLabel}.`, 'success');
+                    }
+
+                    saveState();
+                    closeDrawer();
+                    renderAll();
+                });
+
+                // Filtri storico
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        state.currentFilter = tab.getAttribute('data-filter');
+                        document.querySelectorAll('.filter-tab').forEach(t => {
+                            if (t === tab) {
+                                t.className = 'filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-slate-900 text-white';
+                            } else {
+                                t.className = 'filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white border border-slate-200 text-slate-600 hover:bg-slate-50';
+                            }
+                        });
+                        renderEntries();
+                    });
+                });
+
+                // Ricerca testuale
+                bindById('search-entries', 'input', (e) => {
+                    state.searchQuery = e.target.value;
+                    renderEntries();
+                });
+
+                // Copia Riepilogo negli appunti
+                bindById('btn-copy-report', 'click', copySummaryToClipboard);
+
+                // Apertura/Chiusura Modale Impostazioni
+                const settingsModal = document.getElementById('settings-modal');
+                bindById('btn-open-settings', 'click', () => {
+                    if (!settingsModal) return;
+                    const nameEl = document.getElementById('set-volunteer-name');
+                    const ordEl = document.getElementById('set-ordinari');
+                    const mpEl = document.getElementById('set-malattiaPagata');
+                    const mnpEl = document.getElementById('set-malattiaNonPagata');
+                    const strEl = document.getElementById('set-straordinari');
+
+                    if (nameEl) nameEl.value = state.volunteerName;
+                    if (ordEl) ordEl.value = state.quotas.ordinari;
+                    if (mpEl) mpEl.value = state.quotas.malattiaPagata;
+                    if (mnpEl) mnpEl.value = state.quotas.malattiaNonPagata;
+                    if (strEl) strEl.value = state.quotas.straordinari;
+
+                    settingsModal.classList.remove('hidden');
+                    settingsModal.classList.add('flex');
+                });
+
+                bindById('btn-close-settings', 'click', () => {
+                    if (!settingsModal) return;
+                    settingsModal.classList.add('hidden');
+                    settingsModal.classList.remove('flex');
+                });
+
+                if (settingsModal) {
+                    settingsModal.addEventListener('click', (e) => {
+                        if (e.target === settingsModal) {
+                            settingsModal.classList.add('hidden');
+                            settingsModal.classList.remove('flex');
+                        }
+                    });
+                }
+
+                // Salva Impostazioni Massimali
+                bindById('settings-form', 'submit', (e) => {
+                    e.preventDefault();
+                    state.volunteerName = (document.getElementById('set-volunteer-name')?.value || '').trim();
+                    state.quotas.ordinari = Math.max(0, parseFloat(document.getElementById('set-ordinari')?.value || '0') || 0);
+                    state.quotas.malattiaPagata = Math.max(0, parseFloat(document.getElementById('set-malattiaPagata')?.value || '0') || 0);
+                    state.quotas.malattiaNonPagata = Math.max(0, parseFloat(document.getElementById('set-malattiaNonPagata')?.value || '0') || 0);
+                    state.quotas.straordinari = Math.max(0, parseFloat(document.getElementById('set-straordinari')?.value || '0') || 0);
+
+                    saveState();
+                    renderAll();
+                    if (settingsModal) {
+                        settingsModal.classList.add('hidden');
+                        settingsModal.classList.remove('flex');
+                    }
+                    showToast('Massimali e profilo aggiornati!', 'success');
+                });
+
+                // Ripristina 20/15/15/20
+                bindById('btn-reset-defaults', 'click', () => {
+                    const ordEl = document.getElementById('set-ordinari');
+                    const mpEl = document.getElementById('set-malattiaPagata');
+                    const mnpEl = document.getElementById('set-malattiaNonPagata');
+                    const strEl = document.getElementById('set-straordinari');
+                    if (ordEl) ordEl.value = 20;
+                    if (mpEl) mpEl.value = 15;
+                    if (mnpEl) mnpEl.value = 15;
+                    if (strEl) strEl.value = 20;
+                    showToast('Valori standard 20/15/15/20 reimpostati. Clicca su Salva.', 'info');
+                });
+
+                // Esporta Backup JSON
+                bindById('btn-export-json', 'click', () => {
+                    const dataStr = JSON.stringify(state, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const dateTag = new Date().toISOString().split('T')[0];
+                    a.href = url;
+                    a.download = `servizio-civile-permessi-${dateTag}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('Backup scaricato correttamente.', 'success');
+                });
+
+                // Importa Backup JSON
+                bindById('input-import-json', 'change', (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const imported = JSON.parse(ev.target.result);
+                            if (!imported || !imported.quotas || !Array.isArray(imported.entries)) {
+                                throw new Error('Formato file non valido');
+                            }
+                            state.volunteerName = imported.volunteerName || '';
+                            state.quotas = {
+                                ordinari: Number(imported.quotas.ordinari ?? 20),
+                                malattiaPagata: Number(imported.quotas.malattiaPagata ?? 15),
+                                malattiaNonPagata: Number(imported.quotas.malattiaNonPagata ?? 15),
+                                straordinari: Number(imported.quotas.straordinari ?? 20)
+                            };
+                            state.entries = imported.entries;
+                            saveState();
+                            renderAll();
+                            if (settingsModal) {
+                                settingsModal.classList.add('hidden');
+                                settingsModal.classList.remove('flex');
+                            }
+                            showToast('Backup ripristinato con successo!', 'success');
+                        } catch (err) {
+                            showToast('Il file selezionato non è un backup valido.', 'error');
+                        }
+                        e.target.value = '';
+                    };
+                    reader.readAsText(file);
+                });
+
+                // Svuota tutte le assenze
+                bindById('btn-clear-all-data', 'click', () => {
+                    openConfirmModal(
+                        'Eliminare tutte le assenze?',
+                        'Questa azione cancellerà tutto lo storico inserito riportando tutti i contatori a zero.',
+                        () => {
+                            state.entries = [];
+                            saveState();
+                            renderAll();
+                            if (settingsModal) {
+                                settingsModal.classList.add('hidden');
+                                settingsModal.classList.remove('flex');
+                            }
+                            showToast('Tutte le assenze sono state eliminate.', 'info');
+                        }
+                    );
+                });
+
+                // Pulsanti modale conferma
+                bindById('btn-confirm-cancel', 'click', closeConfirmModal);
+                bindById('btn-confirm-ok', 'click', () => {
+                    if (typeof pendingConfirmCallback === 'function') {
+                        pendingConfirmCallback();
+                    }
+                    closeConfirmModal();
+                });
+            }
+
+            // --- FUNZIONI GLOBALI PER BOTTONI INLINE ---
+            window.appSwitchView = switchView;
+            window.appCopyReport = copySummaryToClipboard;
+
+            window.appQuickAdd = function (catKey) {
+                openDrawer({ reset: true, category: catKey });
+            };
+
+            window.appClickCalendarDay = function (isoStr) {
+                const existing = state.entries.find(e => isoStr >= e.startDate && isoStr <= (e.endDate || e.startDate));
+                if (existing) {
+                    window.appEditEntry(existing.id);
+                } else {
+                    openDrawer({ reset: true, date: isoStr });
+                }
+            };
+
+            window.appFillTag = function (tagText) {
+                const noteInput = document.getElementById('input-note');
+                if (noteInput) {
+                    noteInput.value = tagText;
+                    noteInput.focus();
+                }
+            };
+
+            window.appEditEntry = function (id) {
+                const entry = state.entries.find(e => e.id === id);
+                if (!entry) return;
+
+                const idEl = document.getElementById('entry-id');
+                const titleEl = document.getElementById('form-title');
+                const subEl = document.getElementById('form-subtitle');
+                const btnTextEl = document.getElementById('btn-submit-text');
+                const startEl = document.getElementById('input-start-date');
+                const endEl = document.getElementById('input-end-date');
+                const daysEl = document.getElementById('input-days');
+                const noteEl = document.getElementById('input-note');
+
+                if (idEl) idEl.value = entry.id;
+                if (titleEl) titleEl.textContent = 'Modifica Assenza';
+                if (subEl) subEl.textContent = 'Aggiorna i dettagli di questa registrazione';
+                if (btnTextEl) btnTextEl.textContent = 'Salva Modifiche';
+
+                selectCategory(entry.category);
+                if (startEl) startEl.value = entry.startDate;
+                if (endEl) endEl.value = entry.endDate || '';
+                if (daysEl) daysEl.value = entry.days;
+                if (noteEl) noteEl.value = entry.note || '';
+
+                checkOverLimitWarning();
+                openDrawer({ reset: false });
+            };
+
+            window.appDeleteEntry = function (id) {
+                const entry = state.entries.find(e => e.id === id);
+                if (!entry) return;
+                const catName = CATEGORIES[entry.category]?.shortLabel || 'Assenza';
+                openConfirmModal(
+                    'Eliminare questa voce?',
+                    `Vuoi rimuovere "${catName}" del ${formatDateIT(entry.startDate)} (${formatNumber(entry.days)} gg)?`,
+                    () => {
+                        state.entries = state.entries.filter(e => e.id !== id);
+                        saveState();
+                        renderAll();
+                        showToast('Voce eliminata e giorni riaccreditati.', 'info');
+                    }
+                );
+            };
+
+            // --- UTILITY UI (MODALE CONFERMA, CLIPBOARD, TOAST) ---
+            function openConfirmModal(title, message, onConfirm) {
+                const titleEl = document.getElementById('confirm-title');
+                const msgEl = document.getElementById('confirm-message');
+                const modal = document.getElementById('confirm-modal');
+                if (titleEl) titleEl.textContent = title;
+                if (msgEl) msgEl.textContent = message;
+                pendingConfirmCallback = onConfirm;
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+
+            function closeConfirmModal() {
+                const modal = document.getElementById('confirm-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                pendingConfirmCallback = null;
+            }
+
+            function copySummaryToClipboard() {
+                const usedMap = getUsedDaysByCategory();
+                const todayStr = new Intl.DateTimeFormat('it-IT', { dateStyle: 'long' }).format(new Date());
+                const headerTitle = state.volunteerName
+                    ? `RIEPILOGO PERMESSI SERVIZIO CIVILE - ${state.volunteerName}`
+                    : 'RIEPILOGO PERMESSI SERVIZIO CIVILE';
+
+                const lines = [
+                    headerTitle,
+                    `Aggiornato al: ${todayStr}`,
+                    '----------------------------------------',
+                    ...Object.values(CATEGORIES).map(cat => {
+                        const max = state.quotas[cat.key];
+                        const used = usedMap[cat.key];
+                        const rem = max - used;
+                        return `• ${cat.label}: ${formatNumber(rem)} rimasti (usati ${formatNumber(used)} su ${formatNumber(max)})`;
+                    }),
+                    '----------------------------------------'
+                ];
+
+                if (state.entries.length > 0) {
+                    lines.push('Ultime assenze registrate:');
+                    const recent = [...state.entries]
+                        .sort((a, b) => b.startDate.localeCompare(a.startDate))
+                        .slice(0, 10);
+                    recent.forEach(e => {
+                        const catShort = CATEGORIES[e.category]?.shortLabel || e.category;
+                        const dStr = e.endDate && e.endDate !== e.startDate
+                            ? `${formatDateIT(e.startDate)} - ${formatDateIT(e.endDate)}`
+                            : formatDateIT(e.startDate);
+                        lines.push(`- [${dStr}] ${catShort}: ${formatNumber(e.days)} gg${e.note ? ' (' + e.note + ')' : ''}`);
+                    });
+                }
+
+                const textToCopy = lines.join('\n');
+
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Riepilogo copiato negli appunti!', 'success');
+                } catch (err) {
+                    showToast('Impossibile copiare il riepilogo.', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                const colors = {
+                    success: 'bg-slate-900 text-white border-emerald-500',
+                    error: 'bg-rose-600 text-white border-rose-800',
+                    info: 'bg-slate-800 text-white border-indigo-400'
+                };
+                toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs sm:text-sm font-medium animate-view ${colors[type] || colors.info}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3200);
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // Avvio al caricamento del DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
